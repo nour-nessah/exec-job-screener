@@ -1,20 +1,18 @@
-"""Key integrity checks between the raw LinkedIn tables (primary and foreign keys).
+"""Key integrity checks between the LinkedIn tables (primary and foreign keys).
 
+Reads the database built by scripts/build_db.py.
 Run from the project root:
+    python scripts/build_db.py    # once, to (re)build the database
     python scripts/check_keys.py
 """
 from pathlib import Path
 
 import duckdb
 
-RAW_DIR = Path("data/raw/linkedin")
+DB_PATH = Path("data/processed/linkedin.duckdb")
 
-con = duckdb.connect()
-
-# Register each CSV file as a named view, so the SQL below reads like normal tables.
-con.execute(f"CREATE VIEW postings  AS SELECT * FROM read_csv('{RAW_DIR / 'postings.csv'}')")
-con.execute(f"CREATE VIEW salaries  AS SELECT * FROM read_csv('{RAW_DIR / 'jobs' / 'salaries.csv'}')")
-con.execute(f"CREATE VIEW companies AS SELECT * FROM read_csv('{RAW_DIR / 'companies' / 'companies.csv'}')")
+# read_only=True: an analysis script must never be able to change the data.
+con = duckdb.connect(str(DB_PATH), read_only=True)
 
 
 def scalar(sql: str) -> int:
