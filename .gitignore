@@ -1,0 +1,15 @@
+# Virtual environment (rebuild with: pip install -r requirements.txt)
+.venv/
+
+# Data (not redistributed; see README for download instructions)
+data/raw/
+data/processed/
+
+# Python / Jupyter / pytest artifacts
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# macOS
+.DS_Store
