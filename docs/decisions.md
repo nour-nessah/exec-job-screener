@@ -227,3 +227,25 @@ agencies reusing templates).
 **Consequences.** The test set measures performance on **companies the model has never
 seen**, the realistic situation for new crawled sources. The test share is 18.1% of
 postings because a few large employers fell into training; the label balance is preserved.
+
+---
+
+## D-009 — Model evaluation: ranking quality and calibration (no recalibration)
+
+**Ranking** (test set: 6,425 postings from companies not seen in training, 38.5% positive):
+- Average precision 0.909 (no-skill level: 0.385). Best F1 0.833 at threshold 0.43.
+- The model dominates both keyword rules: at the senior-keyword rule's recall (57.5%) it is
+  93% precise (rule: 64%); at the same precision (64%) it finds 97% of $100k+ jobs
+  (rule: 57.5%). At the executive rule's recall (13.9%) it is 99.3% precise.
+
+**Calibration.**
+- Brier score 0.096 (always predicting the base rate: 0.237).
+- Expected calibration error 0.024; no probability bin is off by more than ~4.5 points.
+- Mild, typical pattern for regularised logistic regression: slightly too cautious at the
+  extremes (predicted 95% → observed 97%; predicted 4% → observed 1.5%).
+- Calibrated within each region: "other US state" 31.5% predicted vs 31.0% observed, where
+  73% of non-disclosers are located. This supports D-005 (region as a feature).
+
+**Decision.** Use the probabilities as they are. Recalibration (e.g. isotonic regression)
+would require a separate calibration set taken from the training data, for a gain of at
+most a few points.
