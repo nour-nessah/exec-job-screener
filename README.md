@@ -20,6 +20,18 @@ Evaluated on **companies the model never saw during training**:
 | Applied to 87,776 postings **without** a salary | **~34%** estimated above $100k; 16% auto-accepted, 31% sent to review |
 
 ![Precision-recall curve: the model dominates both keyword rules](reports/figures/pr_curve.png)
+## Try it
+
+Score any job posting and see which words drove the decision (after the setup in
+[Reproduce](#reproduce)):
+
+```bash
+streamlit run app/streamlit_app.py    # interactive app at http://localhost:8501
+python scripts/screen_posting.py --title "Vice President of Finance" --experience Executive
+```
+
+Both use the same tested explanation code. For logistic regression the explanation is exact:
+the intercept plus all word contributions add up to the model's score.
 
 ## How it works
 
