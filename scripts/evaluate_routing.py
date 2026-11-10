@@ -117,3 +117,8 @@ review_list.to_csv(REVIEW_LIST_PATH, index=False)
 print(f"\nLabel review list: {len(review_list)} postings ({disagree.mean():.1%} of test) "
       f"-> {REVIEW_LIST_PATH}")
 print(f"Saved figure to {FIGURE_PATH}")
+
+# --- 5. Save the chosen thresholds for later use (scoring, demo app) --------------
+THRESHOLDS_PATH = Path("models/thresholds.json")
+pd.Series({"target": TARGET, "t_low": t_low, "t_high": t_high}).to_json(THRESHOLDS_PATH, indent=2)
+print(f"Saved thresholds to {THRESHOLDS_PATH}")

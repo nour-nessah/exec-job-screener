@@ -17,6 +17,7 @@ Evaluated on **companies the model never saw during training**:
 | Average precision (area under the precision–recall curve) | **0.909** (no-skill level: 0.385) |
 | Calibration error | **0.024**: when the model says 80%, about 80% are above $100k |
 | Review routing at 95% accuracy | **66% of postings decided automatically**; 34% go to a person |
+| Applied to 87,776 postings **without** a salary | **~34%** estimated above $100k; 16% auto-accepted, 31% sent to review |
 
 ![Precision-recall curve: the model dominates both keyword rules](reports/figures/pr_curve.png)
 
@@ -94,6 +95,7 @@ python scripts/plot_pr_curve.py       # precision-recall curve vs baselines
 python scripts/check_calibration.py   # calibration
 python scripts/error_analysis.py      # subgroups and error analysis
 python scripts/evaluate_routing.py    # review routing and workload curve
+python scripts/score_unlabelled.py    # score all postings without a salary
 ```
 
 ## Project structure

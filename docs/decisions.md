@@ -318,3 +318,25 @@ makes its cost explicit.
 
 **Data-quality by-product.** 21 test postings (0.3%) where the model is ≥ 95% sure and the
 salary data says the opposite are saved as a label review list (D-010).
+
+---
+
+## D-012 — Applying the model to postings without a salary
+
+**Context.** The model exists for the 87,776 postings that disclose no salary. For them there is
+no ground truth, so results are estimates whose reliability rests on the test-set evaluation
+(D-009, D-010) and on disclosure being random within each region (D-005).
+
+**Method.** Same inputs as for training (title, salary-stripped description, region, work type,
+experience level), the trained model, and the D-011 thresholds saved in `models/thresholds.json`.
+
+**Result.**
+- Expected share ≥ $100k: 33.8% (≈ 29,700 postings), the mean of calibrated probabilities.
+  Lower than among disclosers (39.2%), as expected: 73% of these postings are in
+  lower-paying states without pay-transparency laws (mean probability 28.7%).
+- Routing: 16.2% auto-accept, 30.5% human review, 53.3% auto-reject.
+- Sanity checks: Directors average 87.7%, entry-level 11.5%; the most confident postings are
+  "Vice President of Architecture", "Principal Engineer" and similar.
+
+**Caveat.** Accuracy cannot be measured on these postings. The realistic expectation is the
+test-set performance in "other US state" (F1 0.78), where most of them are located.

@@ -41,6 +41,22 @@ WHERE salary_quality = 'ok'
 ORDER BY job_id
 """
 
+# The real use case: postings that disclose NO salary, with the same model inputs.
+UNLABELLED_SQL = f"""
+SELECT
+    job_id,
+    company_id,
+    company_name,
+    title,
+    description,
+    work_type,
+    COALESCE(formatted_experience_level, 'missing') AS experience,
+    {REGION_SQL} AS region
+FROM postings p
+WHERE NOT EXISTS (SELECT 1 FROM ({SALARY_SQL}) s WHERE s.job_id = p.job_id)
+ORDER BY job_id
+"""
+
 TEST_PERCENT = 20
 
 
@@ -59,13 +75,22 @@ def is_test(key: str, test_percent: int = TEST_PERCENT) -> bool:
     return bucket < test_percent
 
 
+def _to_dataframe(con, sql: str) -> pd.DataFrame:
+    relation = con.sql(sql)
+    return pd.DataFrame(relation.fetchall(), columns=relation.columns)
+
+
 def load_labelled(con) -> pd.DataFrame:
     """Labelled postings as a DataFrame, with a company group key and the test-split flag."""
-    relation = con.sql(LABELLED_SQL)
-    df = pd.DataFrame(relation.fetchall(), columns=relation.columns)
+    df = _to_dataframe(con, LABELLED_SQL)
     df["group"] = [
         group_key(company_id, name, job_id)
         for company_id, name, job_id in zip(df["company_id"], df["company_name"], df["job_id"])
     ]
     df["is_test"] = df["group"].map(is_test)
     return df
+
+
+def load_unlabelled(con) -> pd.DataFrame:
+    """Postings without any disclosed salary: the population the model is built for."""
+    return _to_dataframe(con, UNLABELLED_SQL)
