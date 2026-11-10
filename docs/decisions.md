@@ -197,3 +197,33 @@ using plausible salaries only (D-003): 35,573 labelled postings, 13,959 positive
 **Decision.** A model is only worth its complexity if its precision-recall curve lies above
 both keyword-rule points and its best F1 exceeds 0.601. In Phase 3, the baselines are
 re-evaluated on exactly the same test split as the model.
+
+---
+
+## D-008 — Company-grouped, deterministic train/test split
+
+**Context.** Companies post near-identical jobs many times (templates for several cities,
+re-posts, several openings for one role). With a random split, one copy lands in training
+and its twin in the test set, inflating test scores.
+
+**Evidence** (35,573 labelled postings, 10,730 company groups, 20% test target):
+
+| Split | Train | Test | Positive (train / test) | Test postings with an identical twin in training | Companies on both sides |
+|---|---|---|---|---|---|
+| Random (by posting) | 28,416 | 7,157 | 39.1% / 39.9% | 486 (6.8%) | 2,200 |
+| Grouped (by company) | 29,148 | 6,425 | 39.4% / 38.5% | 9 (0.1%) | 0 |
+
+The 9 remaining twins are identical texts posted by *different* companies (e.g. staffing
+agencies reusing templates).
+
+**Decision.**
+- Group key: `company_id`; if missing, the normalised company name; if also missing, the
+  posting itself (497 labelled postings have neither).
+- Assign a group to the test set if `md5(group key) mod 100 < 20`. The assignment is
+  deterministic (no random seed to store), identical on every machine, and stable when
+  new data arrives. Python's built-in `hash()` is not used because it is randomised per
+  process.
+
+**Consequences.** The test set measures performance on **companies the model has never
+seen**, the realistic situation for new crawled sources. The test share is 18.1% of
+postings because a few large employers fell into training; the label balance is preserved.
