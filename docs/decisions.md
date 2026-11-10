@@ -165,3 +165,35 @@ deliberate: removing a harmless number costs little; leaving a salary in costs a
 **Opportunity noted.** 12,623 non-disclosers mention a salary-like amount in their text.
 Extracting these (with context words and validation) could add up to ~35% more labelled
 examples, which is a natural next step for a data-extraction pipeline.
+
+---
+
+## D-007 — Target, evaluation metrics and baselines
+
+**Target.** `label = 1` if the full-time-equivalent annual salary (D-004) is ≥ $100,000,
+using plausible salaries only (D-003): 35,573 labelled postings, 13,959 positive (39.2%).
+
+**Metrics.** Accuracy is misleading: always predicting "below benchmark" already reaches
+60.8%. We report:
+- *Precision*: of the jobs flagged, the share truly ≥ $100k (quality of a premium feed).
+- *Recall*: of the jobs truly ≥ $100k, the share found (completeness of the inventory).
+- *F1*, and the full precision-recall curve for probabilistic models.
+
+**Baselines** (all labelled postings):
+
+| Rule | Flagged | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| Always "below benchmark" | 0 | 60.8% | – | 0.0% | 0.000 |
+| Experience = Director/Executive | 1,645 | 64.4% | 89.2% | 10.5% | 0.188 |
+| Title: executive keywords | 2,115 | 65.0% | 85.5% | 13.0% | 0.225 |
+| Title: executive + senior keywords | 11,909 | 71.0% | 65.3% | 55.7% | 0.601 |
+
+**Findings.**
+- Executive titles are precise but rare: most jobs ≥ $100k are senior professional roles
+  (controller, project manager, software engineer, tax manager, attorney).
+- Keywords ignore context: frequent false alarms include "human resources business partner",
+  "executive assistant to chief executive officer" and "assistant director".
+
+**Decision.** A model is only worth its complexity if its precision-recall curve lies above
+both keyword-rule points and its best F1 exceeds 0.601. In Phase 3, the baselines are
+re-evaluated on exactly the same test split as the model.
