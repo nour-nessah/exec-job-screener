@@ -1,6 +1,6 @@
 """Inspect implausible salaries: compare raw values with their claimed pay period.
 
-Reads the database built by scripts/build_db.py.
+Uses the shared salary rules in src/exec_screener/salary.py.
 Run from the project root:
     python scripts/inspect_salary_outliers.py
 """
@@ -8,22 +8,10 @@ from pathlib import Path
 
 import duckdb
 
+from exec_screener.salary import SALARY_SQL
+
 DB_PATH = Path("data/processed/linkedin.duckdb")
 con = duckdb.connect(str(DB_PATH), read_only=True)
-
-# NOTE: repeats the point-salary rule from annualise_salary.py.
-# Step 1.4 moves this shared logic into a single module (removing the duplication).
-RAW = """
-SELECT
-    job_id, title, pay_period, min_salary, med_salary, max_salary,
-    CASE
-        WHEN min_salary IS NOT NULL AND max_salary IS NOT NULL
-            THEN (min_salary + max_salary) / 2
-        ELSE med_salary
-    END AS point_salary
-FROM postings
-WHERE min_salary IS NOT NULL OR med_salary IS NOT NULL OR max_salary IS NOT NULL
-"""
 
 BUCKETS = [
     ("0", "point_salary = 0"),
@@ -45,7 +33,7 @@ def show_examples(heading: str, where: str, order: str = "job_id", limit: int = 
     print(f"\n{heading}")
     examples = con.sql(f"""
         SELECT job_id, title, min_salary, med_salary, max_salary
-        FROM ({RAW})
+        FROM ({SALARY_SQL})
         WHERE {where}
         ORDER BY {order}
         LIMIT {limit}
@@ -59,7 +47,7 @@ def show_examples(heading: str, where: str, order: str = "job_id", limit: int = 
 bucket_counts = ", ".join(f"COUNT(*) FILTER (WHERE {condition})" for _, condition in BUCKETS)
 rows = con.sql(f"""
     SELECT pay_period, {bucket_counts}
-    FROM ({RAW})
+    FROM ({SALARY_SQL})
     GROUP BY pay_period
     ORDER BY COUNT(*) DESC
 """).fetchall()
