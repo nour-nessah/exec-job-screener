@@ -20,6 +20,7 @@ Evaluated on **companies the model never saw during training**:
 | Applied to 87,776 postings **without** a salary | **~34%** estimated above $100k; 16% auto-accepted, 31% sent to review |
 
 ![Precision-recall curve: the model dominates both keyword rules](reports/figures/pr_curve.png)
+
 ## Try it
 
 Score any job posting and see which words drove the decision (after the setup in
@@ -71,7 +72,7 @@ raw CSV files ──► DuckDB database ──► salary rules ──► labelle
   to ~35% more labelled data with a careful extraction step.
 
 All decisions, with evidence and rejected alternatives: [docs/decisions.md](docs/decisions.md)
-(D-001 to D-011).
+(D-001 to D-012).
 
 ## Limitations
 
@@ -101,20 +102,22 @@ and extract it into `data/raw/linkedin/` (so that `data/raw/linkedin/postings.cs
 
 ```bash
 python scripts/build_db.py            # load raw CSVs into data/processed/linkedin.duckdb
-python -m pytest                      # 53 tests (data tests are skipped without the database)
 python scripts/train_model.py         # train and evaluate the model
 python scripts/plot_pr_curve.py       # precision-recall curve vs baselines
 python scripts/check_calibration.py   # calibration
 python scripts/error_analysis.py      # subgroups and error analysis
 python scripts/evaluate_routing.py    # review routing and workload curve
 python scripts/score_unlabelled.py    # score all postings without a salary
+python -m pytest                      # 57 tests (data and model tests are skipped until built)
 ```
 
 ## Project structure
 
 ```
-src/exec_screener/   shared logic: salary rules, text cleaning, baselines, dataset, model, routing
+src/exec_screener/   shared logic: salary rules, text cleaning, baselines, dataset, model,
+                     routing, explanations
 scripts/             one script per analysis step (data checks, training, evaluation, figures)
+app/                 interactive Streamlit demo
 tests/               unit tests (hand-made inputs) and data-quality tests (real database)
 docs/decisions.md    decision log: evidence and alternatives for every analytical choice
 reports/figures/     figures used in this README
