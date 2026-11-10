@@ -34,8 +34,7 @@ which confirms how that column was built.
   typical executive base pay so that real senior salaries are not flagged.
 
 **Consequences.** 500 of 36,073 salaries (1.39%) fall outside the band.
-The hourly factor assumes full-time, full-year work; this assumption is tested separately
-(see D-004, pending).
+The hourly factor assumes full-time, full-year work; see D-004 for how this is interpreted.
 
 ---
 
@@ -63,3 +62,37 @@ Flagged rows form a queue for human review.
 - Costs 1.39% of training labels.
 - Prevents 38 junior-level postings above $1M from being labelled "executive".
 - Share of postings ≥ $100k: 38.80% (all rows) vs 39.24% (plausible rows only).
+
+---
+
+## D-004 — `annual_salary` means full-time-equivalent pay of the role
+
+**Context.** Converting hourly pay with × 2,080 assumes 40 hours a week, 52 weeks a year.
+Among plausible salaries, hourly **contract** jobs reach ≥ $100k in 48.2% of cases,
+hourly **full-time** jobs in only 11.5%. Does the conversion inflate contract salaries?
+
+**Evidence.**
+- *Composition, not conversion:* the median rate is $47.50/h for hourly contracts vs
+  $24.00/h for hourly full-time jobs. These are different kinds of jobs (confounding).
+- *Reference group without conversion:* yearly-paid contracts have a median of $100,000 and
+  53.1% ≥ $100k; hourly contracts after × 2,080 have $98,800 and 48.2%. No sign of
+  systematic inflation (caveat: only 286 yearly-paid contracts).
+- *Sensitivity:* hourly contracts supply 1,611 of 13,959 positive labels (11.5%).
+  If contractors were paid for 75% of the year, 746 labels (5.3%) would flip;
+  at 50%, 1,515 (10.9%).
+
+**Decision.** Keep the factors and define `annual_salary` explicitly as the
+**full-time-equivalent (FTE) annual pay of the role**: what the position pays per full-time
+year, not what one person earns in a calendar year. This is how salary benchmarks compare
+positions. Keep `work_type` as a model feature, and report model performance on hourly
+contracts separately.
+
+**Alternatives considered.**
+- *Exclude non-full-time hourly jobs* (contract, part-time, temporary): loses 5,626 rows
+  (15.8% of plausible salaries), including many genuinely high-paid contractor roles.
+- *Apply a utilisation factor* (e.g. 0.75 for contracts): replaces one unverifiable
+  assumption with an invented number.
+
+**Consequences.** The label has a clear, documented meaning that matches the dataset's
+`normalized_salary`. The remaining uncertainty is quantified: at most 10.9% of positive
+labels change under a 50% utilisation scenario.

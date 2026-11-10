@@ -1,6 +1,6 @@
 """Salary rules shared by all analyses: point estimate, annualisation, plausibility.
 
-The reasoning behind each rule is documented in docs/decisions.md (D-001 to D-003).
+The reasoning behind each rule is documented in docs/decisions.md (D-001 to D-004).
 """
 
 FLOOR = 7.25 * 2080  # D-002: US federal minimum wage, full-time, full-year = $15,080
@@ -8,6 +8,8 @@ CEILING = 1_000_000  # D-002: generous upper bound for a single base salary
 BENCHMARK = 100_000  # executive salary benchmark
 
 # D-002: multiply a salary stated per pay period by this factor to get a yearly amount.
+# D-004: the result is FULL-TIME-EQUIVALENT pay of the role (40 h x 52 weeks for hourly),
+#        not what one person earns in a calendar year.
 ANNUAL_FACTORS = {
     "YEARLY": 1,
     "MONTHLY": 12,
@@ -21,7 +23,7 @@ _FACTOR_CASES = "\n".join(
 )
 
 # One row per posting that discloses a salary, with every postings column plus:
-#   point_salary, point_method, annual_salary, salary_quality
+#   point_salary, point_method, annual_salary (full-time-equivalent, D-004), salary_quality
 SALARY_SQL = f"""
 WITH disclosed AS (
     SELECT
