@@ -284,3 +284,37 @@ most a few points.
 - Use strong model–label disagreement as a data-quality review queue (human check, no
   automatic correction, consistent with D-003).
 - Uncertain predictions near the cut-off are routed to human review (Phase 4).x
+
+---
+
+## D-011 — Review routing: auto-accept, human review, auto-reject
+
+**Context.** The model should take obvious cases off researchers' desks, not replace them.
+Every automatic decision must meet a quality bar; uncertain cases go to a person.
+
+**Method.**
+- Two thresholds: auto-accept if probability ≥ t_high, auto-reject if ≤ t_low, review otherwise.
+- Business rule: each automatic pile must be ≥ 95% correct, and as large as possible.
+- Thresholds are chosen on **out-of-fold** probabilities of the training companies
+  (5-fold cross-validation grouped by company), never on the test set; then applied once to
+  the test set to check that they hold on unseen companies.
+
+**Result** (test set, 6,425 postings from unseen companies; thresholds 0.22 / 0.83):
+
+| Queue | Share | Truly ≥ $100k |
+|---|---|---|
+| Auto-accept | 20.0% | 95.1% |
+| Human review | 33.8% | 52.3% |
+| Auto-reject | 46.2% | 3.9% |
+
+- 66% of postings are decided automatically at ≥ 95% accuracy; the review queue is a
+  genuine coin flip (52% positive), so human time goes where judgement is needed.
+- Cost: 4.7% of $100k+ jobs end up in auto-reject.
+- Holds per region (automated 59–68%; accept 94.4–96.3% correct; reject 95.7–96.7%).
+
+**Workload trade-off** (share decided automatically): 90% accuracy → 87%,
+95% → 66%, 98% → 45%, 99% → 21%. The target is a business choice; the curve
+makes its cost explicit.
+
+**Data-quality by-product.** 21 test postings (0.3%) where the model is ≥ 95% sure and the
+salary data says the opposite are saved as a label review list (D-010).
