@@ -96,3 +96,35 @@ contracts separately.
 **Consequences.** The label has a clear, documented meaning that matches the dataset's
 `normalized_salary`. The remaining uncertainty is quantified: at most 10.9% of positive
 labels change under a 50% utilisation scenario.
+
+---
+
+## D-005 — Salary disclosure: treat as missing at random given location
+
+**Context.** Only 36,073 of 123,849 postings (29.1%) disclose a salary, so the model learns
+from disclosers but must predict for non-disclosers. Are disclosers representative?
+
+**Evidence** (total variation distance between disclosers and non-disclosers):
+- *Location: 0.217.* In pay-transparency states (CA, CO, NY, WA), 50.1% of postings disclose
+  a salary vs 22.4% in other US states. These states make up 31.3% of disclosers but only
+  12.8% of non-disclosers. Disclosure is driven mainly by law.
+- *Experience level: 0.080, company size: 0.075, work type: 0.028.* Smaller differences.
+  Directors (33.8%) and Executives (31.3%) disclose more often than average (29.1%):
+  no sign that senior roles hide their pay.
+- *Pay also differs by region* (plausible salaries): share ≥ $100k is 31.3% in other US
+  states, 43.6% in pay-transparency states and 54.8% where no state is given (mostly
+  national/remote postings). The gap holds within every experience level.
+
+**Decision.** Assume disclosure is missing at random *given location* (MAR):
+- Use region as a model feature, so pay levels are learned per region.
+- Evaluate the model per region, especially "other US state", where 73% of
+  non-disclosers are located.
+
+**Alternatives considered.**
+- *Ignore the bias*: the training data over-represents high-paying regions; the model
+  would overestimate jobs in other states.
+- *Importance weighting by region*: a valid alternative; kept as a robustness check.
+
+**Residual risk.** If, within a region, the best-paying employers systematically hide salaries
+(missing not at random), no observable data can detect it. This limitation is stated
+explicitly rather than assumed away.
