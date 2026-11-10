@@ -128,3 +128,40 @@ from disclosers but must predict for non-disclosers. Are disclosers representati
 **Residual risk.** If, within a region, the best-paying employers systematically hide salaries
 (missing not at random), no observable data can detect it. This limitation is stated
 explicitly rather than assumed away.
+
+---
+
+## D-006 — Remove money amounts from descriptions before modelling (target leakage)
+
+**Context.** The label is "annual salary ≥ $100k", and many descriptions state the salary
+as text ("Salary Range: $115,000 – $170,000"). A text model could learn to read the answer.
+
+**Evidence.**
+- Salary-like amounts appear in 52.9% of disclosers' descriptions (the training data) but
+  only 14.4% of non-disclosers' (the population we predict for). Evaluation on disclosers
+  would therefore overstate real-world performance.
+- In 37% of plausible training examples, the first yearly-style amount in the text alone
+  agrees with the label 84% of the time (quick check, no model).
+- A dollar amount is not always a salary: e.g. a Registered Nurse posting mentioning
+  "$10,000" (most likely a sign-on bonus).
+
+**Decision.** Before any modelling, replace every money-like amount in the description with
+a space (`exec_screener.text.strip_salary_amounts`): `$` amounts, comma-separated
+thousands (e.g. the end of a range "170,000.00"), and "k" amounts. Over-stripping is
+deliberate: removing a harmless number costs little; leaving a salary in costs a lot.
+
+**Verification.**
+- 11 unit tests on real-world formats, including text that must stay unchanged
+  ("2004", "30 countries", "401(k)").
+- On all 123,849 descriptions: matches in disclosers' descriptions drop from
+  25,830 / 13,203 / 6,212 (any $ amount / yearly-style / hourly-style) to 0 / 0 / 0.
+  51.0% of descriptions are changed (including harmless numbers such as "10,000 employees").
+
+**Alternatives considered.**
+- *Remove only amounts identified as salaries*: requires telling salaries from bonuses
+  and other amounts, which a regex cannot do reliably; any miss leaks the label.
+- *Keep the text and rely on the model*: the model would exploit the leak.
+
+**Opportunity noted.** 12,623 non-disclosers mention a salary-like amount in their text.
+Extracting these (with context words and validation) could add up to ~35% more labelled
+examples, which is a natural next step for a data-extraction pipeline.
