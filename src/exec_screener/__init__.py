@@ -1,0 +1,1 @@
+"""Executive Job Screener: shared analysis logic."""

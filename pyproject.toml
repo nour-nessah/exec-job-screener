@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "exec-job-screener"
+version = "0.1.0"
+description = "Screen job postings against an executive salary benchmark."
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+where = ["src"]
