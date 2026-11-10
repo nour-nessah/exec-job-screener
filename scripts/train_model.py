@@ -18,6 +18,9 @@ from exec_screener.model import build_model, prepare_features
 DB_PATH = Path("data/processed/linkedin.duckdb")
 MODEL_PATH = Path("models/model.joblib")
 PREDICTIONS_PATH = Path("data/processed/test_predictions.csv")
+PREDICTION_COLUMNS = [
+    "job_id", "title", "region", "work_type", "pay_period", "experience", "annual_salary", "label",
+]
 
 con = duckdb.connect(str(DB_PATH), read_only=True)
 df = load_labelled(con)
@@ -62,7 +65,7 @@ for name, flagged in predictions.items():
 
 MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 joblib.dump(model, MODEL_PATH)
-results = df.loc[test, ["job_id", "title", "region", "work_type", "experience", "annual_salary", "label"]].copy()
+results = df.loc[test, PREDICTION_COLUMNS].copy()
 results["probability"] = probability
 results.to_csv(PREDICTIONS_PATH, index=False)
 print(f"\nSaved model to {MODEL_PATH} and test predictions to {PREDICTIONS_PATH}")

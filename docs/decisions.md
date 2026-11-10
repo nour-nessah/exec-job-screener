@@ -249,3 +249,38 @@ postings because a few large employers fell into training; the label balance is 
 **Decision.** Use the probabilities as they are. Recalibration (e.g. isotonic regression)
 would require a separate calibration set taken from the training data, for a gain of at
 most a few points.
+
+---
+
+## D-010 — Error analysis: subgroups, label noise and the realistic performance figure
+
+**Subgroups** (test set, threshold 0.5):
+
+| Subgroup | Postings | Positive | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| All test postings | 6,425 | 38.5% | 82.5% | 82.1% | 0.823 |
+| Region: other US state | 3,355 | 31.0% | 79.8% | 76.5% | 0.782 |
+| Region: pay-transparency state | 1,965 | 42.7% | 85.2% | 84.6% | 0.849 |
+| Region: state unknown | 1,105 | 53.8% | 83.1% | 88.4% | 0.856 |
+| Hourly contract | 758 | 47.6% | 84.3% | 81.7% | 0.830 |
+| Hourly full-time | 1,633 | 10.1% | 67.5% | 65.5% | 0.665 |
+
+**Findings.**
+- *Realistic performance:* the weakest region ("other US state", F1 0.782) contains 73% of
+  non-disclosers, the population the model would be applied to. ~0.78 is the honest
+  headline figure for that use, not 0.82.
+- *Hourly contracts* perform like the overall model (F1 0.830), supporting D-004.
+- *Errors cluster at the cut-off:* 39% of false positives pay $90–100k (all negatives: 9.8%);
+  39% of false negatives pay $100–110k (all positives: 16.6%).
+- *Confident errors reveal label noise:* e.g. a forklift operator at $113,048, a retail shoe
+  salesperson at $119,600 and "Staff Services II" at $521,063, all scored below 2% by
+  the model. Plausible-looking but wrong salaries pass the plausibility band (D-002).
+- *Strongest features are sensible:* occupations (physician, pharmacist, veterinarian),
+  seniority (director, senior, principal) and experience requirements ("10 years");
+  no salary remnants (D-006).
+
+**Decisions.**
+- Report per-region performance alongside the overall figure.
+- Use strong model–label disagreement as a data-quality review queue (human check, no
+  automatic correction, consistent with D-003).
+- Uncertain predictions near the cut-off are routed to human review (Phase 4).x

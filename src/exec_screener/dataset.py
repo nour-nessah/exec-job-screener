@@ -31,6 +31,7 @@ SELECT
     title,
     description,
     work_type,
+    pay_period,
     COALESCE(formatted_experience_level, 'missing') AS experience,
     {REGION_SQL} AS region,
     annual_salary,
